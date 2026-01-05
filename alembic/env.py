@@ -28,12 +28,13 @@ config = context.config
 # Override sqlalchemy.url with DATABASE_URL from environment
 database_url = os.getenv("DATABASE_URL")
 if not database_url:
-    # Try individual parameters
-    user = os.getenv("user")
-    password = os.getenv("password")
-    host = os.getenv("host")
-    port = os.getenv("port")
-    dbname = os.getenv("dbname")
+    # Try individual parameters (DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME env vars)
+    # Using DB_ prefix to avoid conflicts with system variables like USER
+    user = os.getenv("DB_USER") or os.getenv("USER")
+    password = os.getenv("DB_PASSWORD") or os.getenv("PASSWORD")
+    host = os.getenv("DB_HOST") or os.getenv("HOST")
+    port = os.getenv("DB_PORT") or os.getenv("PORT")
+    dbname = os.getenv("DB_NAME") or os.getenv("DBNAME")
     if user and password and host and port and dbname:
         database_url = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
 

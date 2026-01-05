@@ -14,11 +14,26 @@ import os
 import logging
 
 # Load environment variables from .env file
+import os
+from pathlib import Path
+
+# Get the directory where this file is located
+BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = BASE_DIR / ".env"
+
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Load .env file from the project root
+    if ENV_FILE.exists():
+        load_dotenv(dotenv_path=ENV_FILE)
+    else:
+        # Try loading from current directory as fallback
+        load_dotenv()
 except ImportError:
     # If python-dotenv is not installed, environment variables must be set manually
+    pass
+except Exception:
+    # Silently fail if .env file doesn't exist
     pass
 
 # Configure logging
@@ -41,11 +56,36 @@ async def startup_event():
         logger.info("✓ Successfully connected to Supabase PostgreSQL database")
     except Exception as e:
         logger.error(f"✗ Failed to connect to database: {e}")
-        raise RuntimeError(
-            "Cannot connect to Supabase database. "
-            "Please check your DATABASE_URL environment variable. "
-            f"Error: {str(e)}"
+        # Check which connection method is being used
+        import database
+        has_db_url = bool(os.getenv("DATABASE_URL"))
+        has_individual = bool(
+            os.getenv("DB_USER") or os.getenv("USER")
+        ) and bool(
+            os.getenv("DB_PASSWORD") or os.getenv("PASSWORD")
+        ) and bool(
+            os.getenv("DB_HOST") or os.getenv("HOST")
         )
+        
+        if has_individual and not has_db_url:
+            error_msg = (
+                "Cannot connect to Supabase database. "
+                "Please check your database connection parameters (DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME). "
+                f"Error: {str(e)}"
+            )
+        elif has_db_url:
+            error_msg = (
+                "Cannot connect to Supabase database. "
+                "Please check your DATABASE_URL environment variable. "
+                f"Error: {str(e)}"
+            )
+        else:
+            error_msg = (
+                "Cannot connect to Supabase database. "
+                "Please set either DATABASE_URL or individual parameters (DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME). "
+                f"Error: {str(e)}"
+            )
+        raise RuntimeError(error_msg)
 
 # Global exception handler
 @app.exception_handler(Exception)

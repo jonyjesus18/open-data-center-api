@@ -1,39 +1,70 @@
 # Load environment variables from .env file FIRST
+import os
+from pathlib import Path
+
+# Get the directory where this file is located
+BASE_DIR = Path(__file__).resolve().parent
+ENV_FILE = BASE_DIR / ".env"
+
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    # Load .env file from the project root
+    if ENV_FILE.exists():
+        load_dotenv(dotenv_path=ENV_FILE)
+        print(f"✓ Loaded environment variables from {ENV_FILE}")
+    else:
+        # Try loading from current directory as fallback
+        load_dotenv()
+        print("✓ Loaded environment variables (using default .env location)")
 except ImportError:
     # If python-dotenv is not installed, environment variables must be set manually
-    pass
+    print("⚠ python-dotenv not installed. Using system environment variables only.")
+except Exception as e:
+    print(f"⚠ Warning: Could not load .env file: {e}")
+    print("   Using system environment variables only.")
 
 from sqlalchemy import create_engine, Column, String, Float, DateTime, Text, Integer, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
-import os
 
 # Support both DATABASE_URL and individual connection parameters
-# Method 1: Use individual parameters (user, password, host, port, dbname)
-USER = os.getenv("user")
-PASSWORD = os.getenv("password")
-HOST = os.getenv("host")
-PORT = os.getenv("port")
-DBNAME = os.getenv("dbname")
+# Method 1: Use individual parameters (DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME env vars)
+# Note: Using DB_ prefix to avoid conflicts with system variables like USER
+user = os.getenv("DB_USER") or os.getenv("USER")
+password = os.getenv("DB_PASSWORD") or os.getenv("PASSWORD")
+host = os.getenv("DB_HOST") or os.getenv("HOST")
+port = os.getenv("DB_PORT") or os.getenv("PORT")
+dbname = os.getenv("DB_NAME") or os.getenv("DBNAME")
 
 # Method 2: Use DATABASE_URL connection string
 SQLALCHEMY_DATABASE_URL = os.getenv("DATABASE_URL")
 
+# Debug: Show what we found (without exposing passwords)
+if user or password or host or port or dbname:
+    print(f"✓ Found individual DB parameters: DB_USER={'*' if user else 'None'}, DB_HOST={host or 'None'}, DB_PORT={port or 'None'}, DB_NAME={dbname or 'None'}")
+if SQLALCHEMY_DATABASE_URL:
+    # Mask password in connection string for logging
+    masked_url = SQLALCHEMY_DATABASE_URL
+    if "@" in masked_url:
+        parts = masked_url.split("@")
+        if ":" in parts[0]:
+            user_part = parts[0].split(":")[0]
+            masked_url = f"{user_part}:***@{parts[1]}"
+    print(f"✓ Found DATABASE_URL: {masked_url}")
+
 # Build connection URL from individual parameters if available
-if USER and PASSWORD and HOST and PORT and DBNAME:
+if user and password and host and port and dbname:
     # Construct connection string from individual parameters
-    SQLALCHEMY_DATABASE_URL = f"postgresql://{USER}:{PASSWORD}@{HOST}:{PORT}/{DBNAME}"
+    SQLALCHEMY_DATABASE_URL = f"postgresql://{user}:{password}@{host}:{port}/{dbname}"
+    print("✓ Using individual parameters to construct DATABASE_URL")
 elif SQLALCHEMY_DATABASE_URL:
     # Use DATABASE_URL if provided
-    pass
+    print("✓ Using DATABASE_URL connection string")
 else:
     raise ValueError(
         "Database connection configuration is required. "
-        "Either set DATABASE_URL or set individual parameters (user, password, host, port, dbname)."
+        "Either set DATABASE_URL or set individual parameters (DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, DB_NAME)."
     )
 
 if SQLALCHEMY_DATABASE_URL.startswith("sqlite"):
