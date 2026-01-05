@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import text
 from typing import List, Optional
-import database
-import schemas
-from database import DataCenter, DataCenterMetadata, DataCenterChangeHistory, UserProfile, ApiKey
+from . import database
+from . import schemas
+from .database import DataCenter, DataCenterMetadata, DataCenterChangeHistory, UserProfile, ApiKey
 from datetime import datetime
 import os
 import logging
@@ -48,7 +48,7 @@ app = FastAPI(title="Data Center API", version="1.0.0")
 @app.on_event("startup")
 async def startup_event():
     """Validate database connection on startup"""
-    import database
+    from . import database
     try:
         # Try to connect to the database
         with database.engine.connect() as conn:

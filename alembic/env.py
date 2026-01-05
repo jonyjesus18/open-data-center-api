@@ -14,8 +14,10 @@ try:
 except ImportError:
     pass
 
-# Add parent directory to path to import database module
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Add src directory to path to import database module
+project_root = os.path.dirname(os.path.dirname(__file__))
+src_path = os.path.join(project_root, "src")
+sys.path.insert(0, src_path)
 
 # Import database models and Base
 from database import Base
@@ -88,8 +90,8 @@ def run_migrations_online() -> None:
 
     """
     # Use the engine from database module to ensure SSL is configured
-    from database import engine
-    connectable = engine
+    import database
+    connectable = database.engine
 
     with connectable.connect() as connection:
         context.configure(

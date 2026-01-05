@@ -2,7 +2,8 @@ services:
   - type: web
     name: open-data-center-api
     env: python
-    buildCommand: pip install -r requirements.txt
+    rootDir: src
+    buildCommand: cd .. && pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL

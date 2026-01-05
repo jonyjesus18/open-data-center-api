@@ -9,12 +9,19 @@ except ImportError:
     # If python-dotenv is not installed, environment variables must be set manually
     pass
 
+import sys
+from pathlib import Path
+
+# Add src directory to path so we can import database
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
+
 import pandas as pd
 import database
 from database import DataCenter, DataCenterMetadata
 from sqlalchemy import text
 import ast
 import os
+from pathlib import Path
 
 def run_migrations():
     """Run Alembic migrations to bring database schema up to date"""
@@ -45,7 +52,7 @@ def init_database():
         
         # Load data centers table
         print("Loading data_centers_table.csv...")
-        df_centers = pd.read_csv("data_centers_table.csv")
+        df_centers = pd.read_csv(script_dir / "data_centers_table.csv")
         print(f"Found columns: {list(df_centers.columns)}")
         
         for _, row in df_centers.iterrows():
@@ -68,7 +75,7 @@ def init_database():
         
         # Load metadata table
         print("Loading data_centers_metadata.csv...")
-        df_metadata = pd.read_csv("data_centers_metadata.csv")
+        df_metadata = pd.read_csv(script_dir / "data_centers_metadata.csv")
         print(f"Found columns: {list(df_metadata.columns)}")
         
         for _, row in df_metadata.iterrows():

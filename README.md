@@ -1,89 +1,86 @@
-# Data Center API
+# Open Data Center API
 
-A simple REST API built with FastAPI for CRUD operations on data center tables.
+FastAPI backend for the Open Data Center platform.
 
 ## Setup
 
 1. Install dependencies:
-```bash
-pip install -r requirements.txt
-```
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-2. Initialize the database from CSV files:
-```bash
-python init_db.py
-```
+2. Configure environment variables in `.env`:
+   ```
+   DB_USER=postgres.pvyrexbrwybiphajgiei
+   DB_PASSWORD=your-password
+   DB_HOST=aws-1-eu-west-2.pooler.supabase.com
+   DB_PORT=6543
+   DB_NAME=postgres
+   ALLOWED_ORIGINS=https://your-frontend.vercel.app
+   ADMIN_API_KEY=your-admin-key
+   ENVIRONMENT=production
+   ```
 
-3. Run the API server:
-```bash
-uvicorn main:app --reload
-```
+   Alternatively, use `DATABASE_URL` instead of individual DB parameters.
 
-The API will be available at `http://localhost:8000`
+3. Initialize database:
+   ```bash
+   python db/init_db.py
+   ```
+
+4. Run the API:
+   ```bash
+   # From project root (recommended)
+   uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
+   
+   # Or use the run script
+   ./run.sh
+   
+   # Or from src directory
+   cd src && uvicorn main:app --reload
+   ```
+
+## Deployment
+
+### Render
+
+The project is configured for Render deployment:
+
+- Root Directory: `src`
+- Build Command: `pip install -r requirements.txt`
+- Start Command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+
+Set environment variables in Render dashboard:
+- `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`, `DB_NAME` (or `DATABASE_URL`)
+- `ALLOWED_ORIGINS`
+- `ADMIN_API_KEY`
+- `ENVIRONMENT=production`
+
+### Other Platforms
+
+For other platforms, ensure:
+- Root directory is set to `src`
+- Start command: `uvicorn main:app --host 0.0.0.0 --port $PORT`
+- All environment variables are set
+
+## Project Structure
+
+```
+.
+├── src/              # API source code
+│   ├── main.py      # FastAPI application
+│   ├── database.py  # Database models and connection
+│   └── schemas.py   # Pydantic schemas
+├── db/              # Database initialization scripts
+│   ├── init_db.py   # Database initialization
+│   └── *.csv        # Data files
+├── alembic/         # Database migrations
+├── requirements.txt # Python dependencies
+└── render.yaml      # Render deployment config
+```
 
 ## API Documentation
 
-Once the server is running, you can access:
-- Interactive API docs: `http://localhost:8000/docs`
-- Alternative docs: `http://localhost:8000/redoc`
-
-## Endpoints
-
-### Data Centers
-
-- `GET /api/datacenters` - Get all data centers (with pagination: `?skip=0&limit=100`)
-- `GET /api/datacenters/{public_id}` - Get a specific data center
-- `POST /api/datacenters` - Create a new data center
-- `PUT /api/datacenters/{public_id}` - Update a data center
-- `DELETE /api/datacenters/{public_id}` - Delete a data center
-
-### Data Center Metadata
-
-- `GET /api/metadata` - Get all metadata (with pagination: `?skip=0&limit=100`)
-- `GET /api/datacenters/{public_id}/metadata` - Get metadata for a specific data center
-- `POST /api/metadata` - Create new metadata
-- `PUT /api/metadata/{public_id}` - Update metadata
-- `DELETE /api/metadata/{public_id}` - Delete metadata
-
-### Combined
-
-- `GET /api/datacenters/{public_id}/full` - Get data center with its metadata combined
-
-## Example Usage
-
-### Create a data center:
-```bash
-curl -X POST "http://localhost:8000/api/datacenters" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "public_id": "TEST123",
-    "dc_name": "Test Data Center",
-    "coordinates": "[0.0, 0.0]",
-    "date_added": "2025-01-01"
-  }'
-```
-
-### Get all data centers:
-```bash
-curl "http://localhost:8000/api/datacenters"
-```
-
-### Get a specific data center:
-```bash
-curl "http://localhost:8000/api/datacenters/RYKZ4w"
-```
-
-### Update a data center:
-```bash
-curl -X PUT "http://localhost:8000/api/datacenters/RYKZ4w" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "dc_name": "Updated Name"
-  }'
-```
-
-### Delete a data center:
-```bash
-curl -X DELETE "http://localhost:8000/api/datacenters/RYKZ4w"
-```
-
+Once running, access:
+- Swagger UI: `http://localhost:8000/docs`
+- ReDoc: `http://localhost:8000/redoc`

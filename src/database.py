@@ -2,8 +2,8 @@
 import os
 from pathlib import Path
 
-# Get the directory where this file is located
-BASE_DIR = Path(__file__).resolve().parent
+# Get the project root directory (parent of src/)
+BASE_DIR = Path(__file__).resolve().parent.parent
 ENV_FILE = BASE_DIR / ".env"
 
 try:
