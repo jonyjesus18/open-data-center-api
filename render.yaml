@@ -1,6 +1,7 @@
 services:
   - type: web
     name: open-data-center-api
+    runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
     envVars:
